@@ -21,23 +21,23 @@ import com.webproject.blog.service.ServiceInterface.ExchangeRatesService;
 // Service to work with openexchangerates.org
 @Service
 public class OpenExchangeRatesServiceImpl implements ExchangeRatesService {
-  
+
     private ExchangeRates prevRates;
     private ExchangeRates currentRates;
-    
+
     private OpenExchangeRatesClient openExchangeRatesClient;
     private SimpleDateFormat dateFormat;
     private SimpleDateFormat timeFormat;
-    @Value("${openexchangerate.app.id}")
+    @Value("${openexchangerates.app.id}")
     private String appId;
     @Value("${openexchangerates.base}")
     private String base;
 
     @Autowired
-    public OpenExchangeRatesServiceImpl (
-        OpenExchangeRatesClient openExchangeRatesClient,
-        @Qualifier("date_bean") SimpleDateFormat dateFormat,
-        @Qualifier("time_bean") SimpleDateFormat timeFormat
+    public OpenExchangeRatesServiceImpl(
+            OpenExchangeRatesClient openExchangeRatesClient,
+            @Qualifier("date_bean") SimpleDateFormat dateFormat,
+            @Qualifier("time_bean") SimpleDateFormat timeFormat
     ) {
         this.openExchangeRatesClient = openExchangeRatesClient;
         this.dateFormat = dateFormat;
@@ -74,9 +74,9 @@ public class OpenExchangeRatesServiceImpl implements ExchangeRatesService {
         Double prevCoefficient = this.getCoefficient(this.prevRates, charCode);
         Double currentCoefficient = this.getCoefficient(this.currentRates, charCode);
         return prevCoefficient != null && currentCoefficient != null
-            ? Double.compare(currentCoefficient,prevCoefficient)
-            : -101;
-    } 
+                ? Double.compare(currentCoefficient, prevCoefficient)
+                : -101;
+    }
 
 
 // checking and updating rates
@@ -95,14 +95,14 @@ public class OpenExchangeRatesServiceImpl implements ExchangeRatesService {
 */
 
 
-private void refreshCurrentRates (long time) {
+private void refreshCurrentRates(long time) {
     if (
             this.currentRates == null ||
-                !timeFormat.format(Long.valueOf(this.currentRates.getTimestamp()) * 1000)
-                    .equals(timeFormat.format(time))
-     ) {
-            this.currentRates = openExchangeRatesClient.getLatestRates(this.appId);
-     }
+                    !timeFormat.format(Long.valueOf(this.currentRates.getTimestamp()) * 1000)
+                            .equals(timeFormat.format(time))
+    ) {
+        this.currentRates = openExchangeRatesClient.getLatestRates(this.appId);
+    }
 }
 
     /**
@@ -118,24 +118,24 @@ private void refreshCurrentRates (long time) {
      * @param time
      */
 
-     private void refreshPrevRates(long time) {
+    private void refreshPrevRates(long time) {
         Calendar prevCalendar = Calendar.getInstance();
         prevCalendar.setTimeInMillis(time);
         String currentDate = dateFormat.format(prevCalendar.getTime());
-        prevCalendar.add(Calendar.DAY_OF_YEAR,-1);
+        prevCalendar.add(Calendar.DAY_OF_YEAR, -1);
         String newPrevDate = dateFormat.format(prevCalendar.getTime());
         if (
-                this.prevRates == null 
-                    || (
+                this.prevRates == null
+                        || (
                         !dateFormat.format(Long.valueOf(this.prevRates.getTimestamp()) * 1000)
-                            .equals(newPrevDate)
-                            && !dateFormat.format(Long.valueOf(this.prevRates.getTimestamp()) * 1000)
-                            .equals(currentDate)
-                    )
+                                .equals(newPrevDate)
+                                && !dateFormat.format(Long.valueOf(this.prevRates.getTimestamp()) * 1000)
+                                .equals(currentDate)
+                )
         ) {
-                this.prevRates = openExchangeRatesClient.getHistoricalRates(newPrevDate, appId);
+            this.prevRates = openExchangeRatesClient.getHistoricalRates(newPrevDate, appId);
         }
-     }
+    }
 
     /**
      * Formula to calc coef relative to established one rate
@@ -146,8 +146,8 @@ private void refreshCurrentRates (long time) {
      * @param rates
      * @param charCode
      */
-
-     private Double getCoefficient (ExchangeRates rates, String charCode) {
+    
+    private Double getCoefficient(ExchangeRates rates, String charCode) {
         Double result = null;
         Double targetRate = null;
         Double appBaseRate = null;
@@ -161,16 +161,12 @@ private void refreshCurrentRates (long time) {
         }
         if (targetRate != null && appBaseRate != null && defaultBaseRate != null) {
             result = new BigDecimal(
-                (defaultBaseRate / appBaseRate) * targetRate
+                    (defaultBaseRate / appBaseRate) * targetRate
             )
-                .setScale(4,RoundingMode.UP)
-                .doubleValue();
+                    .setScale(4, RoundingMode.UP)
+                    .doubleValue();
         }
-
         return result;
-
-     }
-
-
+    }
 
 }
